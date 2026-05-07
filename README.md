@@ -1,4 +1,4 @@
-# Emergency Medical Map
+# Medical Map
 
 Flask 기반 증상 기반 병원 추천 정보 제공 서비스
 
