@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>증상별 병원 찾기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sb:400px;
+  --navy:#08192e;
+  --navy2:#0f2542;
+  --navy3:#162f50;
+  --teal:#0ea5c5;
+  --teal2:#38c9e8;
+  --td:rgba(14,165,197,.14);
+  --tb:rgba(14,165,197,.4);
+  --w8:rgba(255,255,255,.08);
+  --w6:rgba(255,255,255,.06);
+  --w15:rgba(255,255,255,.15);
+  --t1:rgba(255,255,255,.88);
+  --t2:rgba(255,255,255,.5);
+  --t3:rgba(255,255,255,.25);
+  --t4:rgba(255,255,255,.12);
+  --green:#22c55e;
+  --r:10px;--rs:7px
+}
+html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;background:#08192e}
+
+/* ── Layout ── */
+.app{display:flex;height:100vh}
+
+/* ── Sidebar ── */
+.sb{
+  width:var(--sb);min-width:var(--sb);
+  height:100vh;
+  background:var(--navy);
+  display:flex;flex-direction:column;
+  flex-shrink:0;overflow:hidden;
+  transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);
+  position:relative;z-index:10;
+  border-right:1px solid rgba(255,255,255,.05)
+}
+.sb.closed{width:0;min-width:0}
+
+/* Toggle button */
+#tog{
+  position:fixed;
+  left:calc(var(--sb) - 16px);
+  top:50%;
+  transform:translateY(-50%);
+  z-index:999;
+  width:32px;height:32px;
+  background:#fff;
+  border:none;border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 2px 14px rgba(0,0,0,.25);
+  display:flex;align-items:center;justify-content:center;
+  transition:left .35s cubic-bezier(.4,0,.2,1),box-shadow .15s;
+  color:var(--navy)
+}
+#tog:hover{box-shadow:0 4px 20px rgba(0,0,0,.32)}
+#tog svg{width:15px;height:15px;transition:transform .3s}
+#tog.closed svg{transform:rotate(180deg)}
+
+/* ── Header ── */
+.sbh{
+  height:62px;min-height:62px;
+  display:flex;align-items:center;
+  padding:0 18px;gap:12px;
+  background:var(--navy2);
+  border-bottom:1px solid var(--w6);
+  flex-shrink:0
+}
+.logo{
+  width:34px;height:34px;border-radius:9px;
+  background:var(--teal);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0
+}
+.logo svg{width:18px;height:18px}
+.logo-t h1{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.logo-t p{font-size:10.5px;color:var(--t3);margin-top:1px}
+
+/* Scrollable body */
+.sbb{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--t4) transparent}
+.sbb::-webkit-scrollbar{width:3px}
+.sbb::-webkit-scrollbar-thumb{background:var(--t4);border-radius:2px}
+
+/* ── Breadcrumb ── */
+.bc{
+  display:flex;align-items:center;gap:5px;
+  padding:13px 18px 11px;
+  border-bottom:1px solid var(--w6);
+  flex-wrap:wrap
+}
+.bc-item{
+  font-size:11px;color:var(--t3);
+  cursor:pointer;padding:3px 8px;
+  border-radius:12px;transition:all .15s;
+  white-space:nowrap;max-width:110px;
+  overflow:hidden;text-overflow:ellipsis
+}
+.bc-item:hover{color:var(--t2)}
+.bc-item.cur{color:var(--teal2);background:var(--td)}
+.bc-sep{font-size:11px;color:var(--t4)}
+
+/* ── Phases ── */
+.phase{padding:16px 16px 4px;display:none}
+.phase.on{display:block;animation:fu .2s ease}
+@keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Category cards ── */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cc{
+  display:flex;align-items:center;gap:10px;
+  background:var(--w6);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--r);
+  padding:13px 11px;
+  cursor:pointer;
+  transition:all .15s
+}
+.cc:hover{background:var(--w8);border-color:var(--w15)}
+.cc.sel{background:var(--td);border-color:var(--tb)}
+.ci{
+  width:42px;height:42px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0
+}
+.ci svg{width:22px;height:22px}
+.cn{font-size:12px;font-weight:600;color:var(--t1);line-height:1.25;margin-bottom:2px}
+.ck{font-size:10px;color:var(--t3)}
+
+/* Back button */
+.back{
+  display:inline-flex;align-items:center;gap:5px;
+  background:none;border:1px solid var(--w8);
+  border-radius:20px;color:var(--t2);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:12px;padding:5px 12px;
+  cursor:pointer;margin-bottom:14px;
+  transition:all .15s
+}
+.back:hover{border-color:var(--w15);color:var(--t1)}
+.back svg{width:13px;height:13px}
+
+.sec-lbl{
+  font-size:10px;font-weight:600;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--t3);margin-bottom:9px
+}
+
+/* Primary pills */
+.pp{display:flex;flex-wrap:wrap;gap:6px}
+.ppill{
+  background:var(--w6);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;color:var(--t2);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:12px;padding:7px 14px;
+  cursor:pointer;transition:all .15s
+}
+.ppill:hover{background:var(--td);border-color:var(--tb);color:var(--teal2)}
+.ppill.on{background:var(--td);border-color:var(--teal);color:var(--teal2);font-weight:600}
+
+/* Secondary list */
+.sl{display:flex;flex-direction:column;gap:5px}
+.sbtn{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--rs);color:var(--t2);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:13px;padding:11px 14px;
+  cursor:pointer;text-align:left;
+  transition:all .15s;
+  display:flex;align-items:center;gap:8px
+}
+.sbtn::before{
+  content:'';width:5px;height:5px;
+  border-radius:50%;background:var(--t4);
+  flex-shrink:0;transition:background .15s
+}
+.sbtn:hover{background:var(--td);border-color:var(--tb);color:var(--teal2)}
+.sbtn:hover::before,.sbtn.on::before{background:var(--teal)}
+.sbtn.on{background:var(--td);border-color:var(--teal);color:var(--teal2);font-weight:600}
+
+/* Divider */
+.div{height:1px;background:var(--w6);margin:4px 0}
+
+/* Results */
+.rs{padding:0 16px 20px}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rc{font-size:11px;color:var(--t3)}
+.rc span{color:var(--teal2);font-weight:700}
+
+.radrow{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.radrow label{font-size:11px;color:var(--t3);white-space:nowrap}
+.radrow input{flex:1;accent-color:var(--teal)}
+.radrow em{font-size:11px;color:var(--teal2);font-weight:600;min-width:32px;text-align:right;font-style:normal}
+
+.hcs{display:flex;flex-direction:column;gap:6px}
+.hc{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--rs);padding:12px 14px;
+  cursor:pointer;transition:all .15s
+}
+.hc:hover{background:var(--w8);border-color:var(--w15)}
+.hc.fc{border-color:var(--teal);background:var(--td)}
+.ht{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px}
+.hn{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
+.hd{font-size:11px;font-weight:700;color:var(--teal2);white-space:nowrap;flex-shrink:0}
+.hdept{display:inline-block;font-size:10px;color:var(--teal2);background:var(--td);border-radius:4px;padding:2px 7px;font-weight:600;margin-bottom:5px}
+.hi{font-size:11px;color:var(--t3)}
+.hop{color:var(--green);font-weight:600}
+
+/* Misc */
+.empty{padding:20px;text-align:center;color:var(--t3);font-size:13px;line-height:1.7}
+.ld{display:flex;align-items:center;justify-content:center;gap:8px;padding:22px;color:var(--t3);font-size:13px}
+.spin{width:16px;height:16px;border:2px solid var(--td);border-top-color:var(--teal);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Map ── */
+.mw{flex:1;position:relative;overflow:hidden}
+#map{width:100%;height:100%}
+.mctrl{position:absolute;top:16px;right:16px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.mbtn{
+  background:#fff;border:none;border-radius:10px;
+  padding:9px 14px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:12px;font-weight:600;color:var(--navy);
+  cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.13);
+  display:flex;align-items:center;gap:6px;transition:all .15s
+}
+.mbtn:hover{background:#f0f9ff;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.mbtn svg{width:15px;height:15px}
+.toast{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:1000;background:rgba(8,25,46,.92);color:#fff;
+  font-size:13px;padding:9px 20px;border-radius:30px;font-weight:500;
+  opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none
+}
+.toast.on{opacity:1}
+
+/* Leaflet popup overrides */
+.leaflet-popup-content-wrapper{border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,.15)!important;padding:0!important;overflow:hidden}
+.leaflet-popup-content{margin:0!important;width:228px!important}
+.leaflet-popup-tip-container{display:none}
+.pb{padding:14px 16px;font-family:'Noto Sans KR',sans-serif}
+.pbn{font-size:14px;font-weight:700;color:#0b1f3a;margin-bottom:3px}
+.pbd{font-size:11px;color:#0ea5c5;font-weight:600;margin-bottom:9px}
+.pbr{font-size:12px;color:#4e6b8a;margin-bottom:4px}
+.pbo{color:#22c55e;font-weight:600;font-size:12px}
+.pbc{color:#aaa;font-size:12px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ Sidebar ══ -->
+<aside class="sb" id="sb">
+  <!-- Header -->
+  <div class="sbh">
+    <div class="logo">
+      <svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round">
+        <path d="M10 2L2 6l8 4 8-4-8-4zM2 14l8 4 8-4M2 10l8 4 8-4"/>
+      </svg>
+    </div>
+    <div class="logo-t">
+      <h1>증상별 병원 찾기</h1>
+      <p>원클릭 필터 · 지도 매칭</p>
+    </div>
+  </div>
+
+  <div class="sbb">
+    <!-- Breadcrumb -->
+    <div class="bc" id="bc">
+      <span class="bc-item cur" id="bc0" onclick="toPhase(0)">증상 분류</span>
+      <span class="bc-sep" id="bca1" style="display:none">›</span>
+      <span class="bc-item" id="bc1" style="display:none"></span>
+      <span class="bc-sep" id="bca2" style="display:none">›</span>
+      <span class="bc-item" id="bc2" style="display:none"></span>
+    </div>
+
+    <!-- Phase 0: Category grid -->
+    <div class="phase on" id="p0">
+      <div class="cg" id="cg"></div>
+    </div>
+
+    <!-- Phase 1: Primary pills -->
+    <div class="phase" id="p1">
+      <button class="back" onclick="toPhase(0)">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+        카테고리로
+      </button>
+      <p class="sec-lbl">어떤 증상인가요?</p>
+      <div class="pp" id="pp"></div>
+    </div>
+
+    <!-- Phase 2: Secondary symptoms -->
+    <div class="phase" id="p2">
+      <button class="back" onclick="toPhase(1)">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+        증상으로
+      </button>
+      <p class="sec-lbl">세부 증상을 선택하세요</p>
+      <div class="sl" id="sl">
+        <div class="ld"><div class="spin"></div><span>불러오는 중…</span></div>
+      </div>
+    </div>
+
+    <!-- Results (persistent bottom) -->
+    <div class="div" id="rdiv" style="display:none;margin:0 16px"></div>
+    <div id="rw" style="display:none">
+      <div class="rs">
+        <div class="radrow">
+          <label>반경</label>
+          <input type="range" id="rslider" min="1" max="20" value="5" step="1" oninput="onRad(this.value)">
+          <em id="rval">5km</em>
+        </div>
+        <div class="rh">
+          <span class="rc">총 <span id="rcnt">0</span>개 병원</span>
+          <span class="rc" id="rdept">—</span>
+        </div>
+        <div class="hcs" id="hcs">
+          <div class="empty">증상 선택 후 병원을 표시합니다</div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /sbb -->
+</aside>
+
+<!-- Toggle button -->
+<button id="tog" onclick="toggleSb()" title="사이드바 접기·펼치기">
+  <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+    <path d="M9 2L4 7l5 5"/>
+  </svg>
+</button>
+
+<!-- ══ Map ══ -->
+<div class="mw">
+  <div id="map"></div>
+  <div class="mctrl">
+    <button class="mbtn" onclick="goMe()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="8" cy="8" r="2.5"/>
+        <path d="M8 1v2M8 13v2M1 8h2M13 8h2"/>
+      </svg>
+      내 위치
+    </button>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+</div>
+
+<script>
+const API='http://localhost:5000';
+const DEPT={'1':'내과','2':'신경과','3':'정신건강의학과','4':'외과','5':'정형외과','6':'신경외과','7':'흉부외과','8':'성형외과','9':'마취통증의학과','10':'산부인과','11':'소아청소년과','12':'안과','13':'이비인후과','14':'피부과','15':'비뇨의학과','21':'재활의학과','23':'가정의학과','24':'응급의학과','49':'치과','80':'한의원'};
+const DAYS=['sun_hours','mon_hours','tue_hours','wed_hours','thu_hours','fri_hours','sat_hours'];
+const DKR=['일','월','화','수','목','금','토'];
+
+/* ── Symptom groups ── */
+const GRP=[
+  {id:'resp',nm:'호흡기',c:'#0ea5c5',bg:'rgba(14,165,197,.18)',
+   syms:['감기','기침','콧물','코막힘','잦은 감기'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+     <line x1="14" y1="4" x2="14" y2="11"/>
+     <path d="M14 11c-2 0-5 2-6 5.5s-.5 7 1.5 8 4-.5 5-2.5.5-5.5.5-7"/>
+     <path d="M14 11c2 0 5 2 6 5.5s.5 7-1.5 8-4-.5-5-2.5-.5-5.5-.5-7"/>
+   </svg>`},
+  {id:'fever',nm:'발열·전신',c:'#f97316',bg:'rgba(249,115,22,.18)',
+   syms:['발열','만성 피로','체중 감소','체중 증가','수족냉증','건강검진 상담'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+     <rect x="11.5" y="4" width="5" height="13" rx="2.5"/>
+     <circle cx="14" cy="20.5" r="3.5"/>
+     <line x1="14" y1="15" x2="14" y2="18"/>
+   </svg>`},
+  {id:'neuro',nm:'두통·신경',c:'#8b5cf6',bg:'rgba(139,92,246,.18)',
+   syms:['두통','어지럼증','기억력 저하','불면증','손발 저림','마비 증상'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+     <circle cx="14" cy="11" r="6.5"/>
+     <path d="M10.5 23v-4.5h7V23"/>
+     <line x1="10.5" y1="23" x2="17.5" y2="23"/>
+     <path d="M13 9l-1.5 3h3.5l-1.5 3" stroke-width="1.6"/>
+   </svg>`},
+  {id:'mental',nm:'정신건강',c:'#ec4899',bg:'rgba(236,72,153,.18)',
+   syms:['우울감','불안'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+     <circle cx="14" cy="11" r="6.5"/>
+     <path d="M10.5 23v-4.5h7V23M10.5 23h7"/>
+     <path d="M11 10q1.5-2.5 3 0t3 0" stroke-width="1.5"/>
+     <path d="M11 13q1.5-2.5 3 0t3 0" stroke-width="1.5"/>
+   </svg>`},
+  {id:'heart',nm:'가슴·심장',c:'#ef4444',bg:'rgba(239,68,68,.18)',
+   syms:['가슴 통증','두근거림','호흡 곤란'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+     <path d="M14 22.5S5 17 5 11a5.5 5.5 0 0 1 9-4.2A5.5 5.5 0 0 1 23 11c0 6-9 11.5-9 11.5z"/>
+   </svg>`},
+  {id:'gi',nm:'소화기',c:'#22c55e',bg:'rgba(34,197,94,.18)',
+   syms:['복통','설사','변비','구토','속쓰림'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+     <path d="M10 8.5c0-2.5 1.5-4.5 4-4.5s4 2 4 4.5v2c3 1 4.5 4 4.5 6s-1.5 6.5-5.5 6.5H11c-4 0-5.5-4.5-5.5-6.5s1.5-5 4.5-6z"/>
+   </svg>`},
+  {id:'msk',nm:'근골격',c:'#94a3b8',bg:'rgba(148,163,184,.18)',
+   syms:['허리 통증','목 통증','어깨 통증','무릎 통증','손목 통증'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+     <line x1="14" y1="3" x2="14" y2="25"/>
+     <rect x="10" y="5" width="8" height="4" rx="2"/>
+     <rect x="10" y="11" width="8" height="4" rx="2"/>
+     <rect x="10" y="17" width="8" height="4" rx="2"/>
+   </svg>`},
+  {id:'eye',nm:'눈',c:'#06b6d4',bg:'rgba(6,182,212,.18)',
+   syms:['눈 통증','시력 저하','눈 건조'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+     <path d="M4 14s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/>
+     <circle cx="14" cy="14" r="3"/>
+     <circle cx="14" cy="14" r="1.2" fill="currentColor" stroke="none"/>
+   </svg>`},
+  {id:'ent',nm:'귀·코·목',c:'#f59e0b',bg:'rgba(245,158,11,.18)',
+   syms:['귀 통증','귀 먹먹함','목 붓기','쉰 목소리'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+     <path d="M17 5.5a7.5 7.5 0 0 0-7.5 7.5c0 2.5 1 4 2 5.5l.5 4h4l.5-4c2-.5 4-3 4-5.5a7.5 7.5 0 0 0-3.5-7.5z"/>
+     <path d="M13 11.5a3.5 3.5 0 0 0-1 2.5"/>
+   </svg>`},
+  {id:'skin',nm:'피부',c:'#a78bfa',bg:'rgba(167,139,250,.18)',
+   syms:['피부 가려움','여드름','탈모','사마귀','화상','상처','멍울'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+     <circle cx="9" cy="9" r="2.2"/>
+     <circle cx="19.5" cy="8" r="1.7"/>
+     <circle cx="22" cy="16" r="1.7"/>
+     <circle cx="14" cy="13.5" r="2.7"/>
+     <circle cx="8" cy="19.5" r="1.7"/>
+     <circle cx="18.5" cy="20.5" r="2.2"/>
+   </svg>`},
+  {id:'women',nm:'여성건강',c:'#f472b6',bg:'rgba(244,114,182,.18)',
+   syms:['생리통','질 분비물 이상','임신 의심','갱년기 증상'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+     <circle cx="14" cy="10" r="6.5"/>
+     <line x1="14" y1="16.5" x2="14" y2="24"/>
+     <line x1="10" y1="20.5" x2="18" y2="20.5"/>
+   </svg>`},
+  {id:'uro',nm:'비뇨기',c:'#38bdf8',bg:'rgba(56,189,248,.18)',
+   syms:['소변 통증','야간뇨','요실금'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+     <path d="M14 4L7 18a7 7 0 0 0 14 0L14 4z"/>
+   </svg>`},
+  {id:'dent',nm:'구강·치과',c:'#34d399',bg:'rgba(52,211,153,.18)',
+   syms:['치통','턱관절 통증','입냄새'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+     <path d="M9 5c-3 0-5 3-5 6 0 5 3 7.5 5 7.5h1.5v3c0 3 1 5 3.5 5s3.5-2 3.5-5v-3H19c2 0 5-2.5 5-7.5 0-3-2-6-5-6z"/>
+   </svg>`}
+];
+
+/* ── State ── */
+let map,uMkr,mkrs=[],uLat=37.5665,uLng=126.978;
+let curG=null,curP=null,curS=null,curD=null,rad=5,focEl=null,sbOpen=true;
+
+/* ── Map init ── */
+function initMap(){
+  map=L.map('map',{zoomControl:false}).setView([uLat,uLng],14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(map);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(p=>{
+      uLat=p.coords.latitude;uLng=p.coords.longitude;
+      map.setView([uLat,uLng],15);placeMe();showToast('현재 위치를 찾았습니다');
+    },()=>{placeMe();showToast('위치 권한 없음 — 서울 기본 위치로 표시합니다');});
+  } else placeMe();
+}
+function placeMe(){
+  if(uMkr) uMkr.remove();
+  uMkr=L.marker([uLat,uLng],{icon:L.divIcon({
+    html:`<div style="width:14px;height:14px;border-radius:50%;background:#0ea5c5;border:2.5px solid #fff;box-shadow:0 0 0 4px rgba(14,165,197,.25)"></div>`,
+    className:'',iconAnchor:[7,7]
+  })}).addTo(map).bindTooltip('내 위치',{direction:'right'});
+}
+function goMe(){map.flyTo([uLat,uLng],15,{duration:1.2})}
+
+let tT;
+function showToast(msg,dur=2600){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('on');
+  clearTimeout(tT);tT=setTimeout(()=>el.classList.remove('on'),dur);
+}
+
+/* ── Sidebar toggle ── */
+function toggleSb(){
+  sbOpen=!sbOpen;
+  const sb=document.getElementById('sb');
+  const btn=document.getElementById('tog');
+  sb.classList.toggle('closed',!sbOpen);
+  btn.classList.toggle('closed',!sbOpen);
+  btn.style.left=sbOpen?'calc(var(--sb) - 16px)':'8px';
+  setTimeout(()=>map.invalidateSize(),360);
+}
+
+/* ── Categories ── */
+function renderCats(){
+  const g=document.getElementById('cg');g.innerHTML='';
+  GRP.forEach(gr=>{
+    const d=document.createElement('div');
+    d.className='cc';d.dataset.id=gr.id;
+    d.innerHTML=`<div class="ci" style="background:${gr.bg};color:${gr.c}">${gr.ico}</div>
+      <div><div class="cn">${gr.nm}</div><div class="ck">${gr.syms.length}개 증상</div></div>`;
+    d.onclick=()=>selCat(gr);
+    g.appendChild(d);
+  });
+}
+
+function selCat(gr){
+  curG=gr;curP=null;curS=null;curD=null;
+  document.querySelectorAll('.cc').forEach(c=>c.classList.toggle('sel',c.dataset.id===gr.id));
+  // Render primary pills
+  const pp=document.getElementById('pp');pp.innerHTML='';
+  gr.syms.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='ppill';b.textContent=s;
+    b.onclick=()=>selPrimary(s);
+    pp.appendChild(b);
+  });
+  setBc(1,gr.nm);hideBc(2);
+  toPhase(1);hideRes();
+}
+
+async function selPrimary(sym){
+  curP=sym;curS=null;curD=null;
+  document.querySelectorAll('.ppill').forEach(b=>b.classList.toggle('on',b.textContent===sym));
+  setBc(2,sym);
+  toPhase(2);hideRes();
+  const sl=document.getElementById('sl');
+  sl.innerHTML=`<div class="ld"><div class="spin"></div><span>불러오는 중…</span></div>`;
+  try{
+    const r=await fetch(`${API}/api/secondary_symptoms?primary=${encodeURIComponent(sym)}`);
+    const data=await r.json();
+    sl.innerHTML='';
+    data.forEach(item=>{
+      const b=document.createElement('button');
+      b.className='sbtn';b.textContent=item;
+      b.onclick=()=>selSecondary(item);
+      sl.appendChild(b);
+    });
+  }catch(e){sl.innerHTML=`<div class="empty">불러오기 실패</div>`;}
+}
+
+async function selSecondary(sym){
+  curS=sym;
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('on',b.textContent===sym));
+  await fetchH();
+}
+
+/* ── Phase nav ── */
+function toPhase(n){
+  [0,1,2].forEach(i=>{
+    const el=document.getElementById(`p${i}`);
+    if(i===n){el.classList.add('on');el.style.display='block';}
+    else{el.classList.remove('on');el.style.display='none';}
+  });
+  if(n===0){resetBc();hideRes();curG=null;curP=null;curS=null;curD=null;clearMkrs();}
+  if(n===1){hideBc(2);hideRes();curS=null;curD=null;clearMkrs();}
+}
+
+/* ── Breadcrumb ── */
+function setBc(n,txt){
+  document.getElementById(`bca${n}`).style.display='';
+  const c=document.getElementById(`bc${n}`);
+  c.textContent=txt;c.style.display='';
+  [0,1,2].forEach(i=>{const e=document.getElementById(`bc${i}`);if(e)e.classList.toggle('cur',i===n);});
+}
+function hideBc(n){document.getElementById(`bca${n}`).style.display='none';document.getElementById(`bc${n}`).style.display='none';}
+function resetBc(){[1,2].forEach(n=>hideBc(n));document.getElementById('bc0').classList.add('cur');}
+
+/* ── Results ── */
+function hideRes(){
+  document.getElementById('rdiv').style.display='none';
+  document.getElementById('rw').style.display='none';
+  clearMkrs();
+}
+function showRes(){
+  document.getElementById('rdiv').style.display='block';
+  document.getElementById('rw').style.display='block';
+}
+
+async function fetchH(){
+  showRes();
+  document.getElementById('hcs').innerHTML=`<div class="ld"><div class="spin"></div><span>병원 검색 중…</span></div>`;
+  try{
+    const dr=await fetch(`${API}/api/department_code?primary=${encodeURIComponent(curP)}&secondary=${encodeURIComponent(curS)}`);
+    const dd=await dr.json();
+    if(dd.error)throw new Error(dd.error);
+    curD=dd.department_code;
+    const hr=await fetch(`${API}/api/hospitals?department_code=${curD}&lat=${uLat}&lng=${uLng}&radius=${rad}`);
+    const hs=await hr.json();
+    renderH(hs);
+  }catch(e){
+    document.getElementById('hcs').innerHTML=`<div class="empty">병원 정보를 가져올 수 없습니다<br><small style="font-size:11px">${e.message}</small></div>`;
+    document.getElementById('rdept').textContent='—';
+  }
+}
+
+function renderH(list){
+  clearMkrs();
+  const dn=DEPT[curD]||`코드 ${curD}`;
+  document.getElementById('rcnt').textContent=list.length;
+  document.getElementById('rdept').textContent=`${dn}`;
+  const cs=document.getElementById('hcs');
+  if(!list.length){
+    cs.innerHTML=`<div class="empty">반경 ${rad}km 내 해당 병원이 없습니다.<br>반경을 늘려보세요.</div>`;return;
+  }
+  cs.innerHTML='';
+  const td=new Date().getDay(),tk=DAYS[td];
+  list.forEach((h,i)=>{
+    const c=document.createElement('div');c.className='hc';
+    const hrs=h[tk]||'';
+    c.innerHTML=`<div class="ht"><span class="hn">${h.name}</span><span class="hd">${h.distance_km}km</span></div>
+      <span class="hdept">${dn}</span>
+      <div class="hi">
+        ${h.phone?`<div>📞 ${h.phone}</div>`:''}
+        ${hrs?`<div class="hop">⏰ ${DKR[td]}요일 ${hrs}</div>`:`<div>오늘 운영시간 정보 없음</div>`}
+      </div>`;
+    c.onclick=()=>focH(h,i,c);
+    cs.appendChild(c);
+    const m=L.marker([h.latitude,h.longitude],{icon:L.divIcon({
+      html:`<div style="background:#08192e;color:#fff;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px;border:2px solid #0ea5c5;box-shadow:0 2px 8px rgba(0,0,0,.3);position:relative">${i+1}<span style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #0ea5c5"></span></div>`,
+      className:'',iconAnchor:[14,30]
+    })}).addTo(map);
+    m.bindPopup(mkPop(h,dn,tk),{maxWidth:240,className:''});
+    m.on('click',()=>focH(h,i,c));
+    mkrs.push(m);
+  });
+  const b=L.latLngBounds([[uLat,uLng]]);
+  list.forEach(h=>b.extend([h.latitude,h.longitude]));
+  map.flyToBounds(b.pad(0.2),{duration:1.2,maxZoom:15});
+}
+
+function mkPop(h, dn, tk){
+  const hrs = h[tk] || '';
+  const td = new Date().getDay();
+  const kakaoUrl = `https://map.kakao.com/link/from/내위치,${uLat},${uLng}/to/${encodeURIComponent(h.name)},${h.latitude},${h.longitude}`;  return `<div class="pb">
+    <div class="pbn">${h.name}</div><div class="pbd">${dn}</div>
+    ${h.phone ? `<div class="pbr">📞 ${h.phone}</div>` : ''}
+    <div class="pbr">📍 ${h.distance_km}km</div>
+    ${hrs ? `<div class="pbo">⏰ ${DKR[td]}요일 ${hrs}</div>` : `<div class="pbc">오늘 운영시간 정보 없음</div>`}
+    
+    <a href="${kakaoUrl}" target="_blank" style="display:block; margin-top:10px; padding:6px; background:#fbe300; color:#381e1f; text-align:center; border-radius:6px; font-weight:700; text-decoration:none; font-size:12px;">
+      카카오맵 길찾기
+    </a>
+  </div>`;
+}
+
+function focH(h,i,card){
+  if(focEl)focEl.classList.remove('fc');
+  card.classList.add('fc');focEl=card;
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+  map.flyTo([h.latitude,h.longitude],16,{duration:1});
+  mkrs[i]?.openPopup();
+}
+
+function clearMkrs(){mkrs.forEach(m=>m.remove());mkrs=[];focEl=null;}
+
+let radT;
+function onRad(v){
+  rad=parseInt(v);document.getElementById('rval').textContent=`${v}km`;
+  clearTimeout(radT);if(curD)radT=setTimeout(fetchH,600);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('p0').style.display='block';
+  document.getElementById('p1').style.display='none';
+  document.getElementById('p2').style.display='none';
+  renderCats();
+  initMap();
+});
+</script>
+</body>
+</html>
