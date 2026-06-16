@@ -10,10 +10,9 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --sb:400px;
+  --sb:420px;
   --navy:#08192e;
   --navy2:#0f2542;
-  --navy3:#162f50;
   --teal:#0ea5c5;
   --teal2:#38c9e8;
   --td:rgba(14,165,197,.14);
@@ -26,41 +25,30 @@
   --t3:rgba(255,255,255,.25);
   --t4:rgba(255,255,255,.12);
   --green:#22c55e;
+  --amber:#f59e0b;
+  --red:#ef4444;
   --r:10px;--rs:7px
 }
 html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;background:#08192e}
 
-/* ── Layout ── */
 .app{display:flex;height:100vh}
 
 /* ── Sidebar ── */
 .sb{
-  width:var(--sb);min-width:var(--sb);
-  height:100vh;
-  background:var(--navy);
-  display:flex;flex-direction:column;
+  width:var(--sb);min-width:var(--sb);height:100vh;
+  background:var(--navy);display:flex;flex-direction:column;
   flex-shrink:0;overflow:hidden;
   transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);
-  position:relative;z-index:10;
-  border-right:1px solid rgba(255,255,255,.05)
+  position:relative;z-index:10;border-right:1px solid rgba(255,255,255,.05)
 }
 .sb.closed{width:0;min-width:0}
 
-/* Toggle button */
 #tog{
-  position:fixed;
-  left:calc(var(--sb) - 16px);
-  top:50%;
-  transform:translateY(-50%);
-  z-index:999;
-  width:32px;height:32px;
-  background:#fff;
-  border:none;border-radius:50%;
-  cursor:pointer;
-  box-shadow:0 2px 14px rgba(0,0,0,.25);
+  position:fixed;left:calc(var(--sb) - 16px);top:50%;transform:translateY(-50%);
+  z-index:999;width:32px;height:32px;background:#fff;border:none;border-radius:50%;
+  cursor:pointer;box-shadow:0 2px 14px rgba(0,0,0,.25);
   display:flex;align-items:center;justify-content:center;
-  transition:left .35s cubic-bezier(.4,0,.2,1),box-shadow .15s;
-  color:var(--navy)
+  transition:left .35s cubic-bezier(.4,0,.2,1),box-shadow .15s;color:var(--navy)
 }
 #tog:hover{box-shadow:0 4px 20px rgba(0,0,0,.32)}
 #tog svg{width:15px;height:15px;transition:transform .3s}
@@ -68,156 +56,163 @@ html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;back
 
 /* ── Header ── */
 .sbh{
-  height:62px;min-height:62px;
-  display:flex;align-items:center;
-  padding:0 18px;gap:12px;
-  background:var(--navy2);
-  border-bottom:1px solid var(--w6);
-  flex-shrink:0
+  height:60px;min-height:60px;display:flex;align-items:center;
+  padding:0 18px;gap:12px;background:var(--navy2);
+  border-bottom:1px solid var(--w6);flex-shrink:0
 }
-.logo{
-  width:34px;height:34px;border-radius:9px;
-  background:var(--teal);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0
-}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .logo svg{width:18px;height:18px}
 .logo-t h1{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px}
 .logo-t p{font-size:10.5px;color:var(--t3);margin-top:1px}
 
-/* Scrollable body */
+/* ── Step tabs ── */
+.steps{display:flex;background:var(--navy2);border-bottom:1px solid var(--w6);flex-shrink:0}
+.step-tab{
+  flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;
+  color:var(--t3);border-bottom:2px solid transparent;cursor:default;
+  display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .15s
+}
+.step-tab .num{
+  width:18px;height:18px;border-radius:50%;background:var(--w8);color:var(--t3);
+  font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700
+}
+.step-tab.active{color:var(--teal2);border-bottom-color:var(--teal)}
+.step-tab.active .num{background:var(--teal);color:#08192e}
+.step-tab.done .num{background:var(--t4);color:var(--t1)}
+.step-tab.clickable{cursor:pointer}
+.step-tab.clickable:hover{color:var(--t1)}
+
+/* Scroll body */
 .sbb{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--t4) transparent}
 .sbb::-webkit-scrollbar{width:3px}
 .sbb::-webkit-scrollbar-thumb{background:var(--t4);border-radius:2px}
 
-/* ── Breadcrumb ── */
-.bc{
-  display:flex;align-items:center;gap:5px;
-  padding:13px 18px 11px;
-  border-bottom:1px solid var(--w6);
-  flex-wrap:wrap
-}
-.bc-item{
-  font-size:11px;color:var(--t3);
-  cursor:pointer;padding:3px 8px;
-  border-radius:12px;transition:all .15s;
-  white-space:nowrap;max-width:110px;
-  overflow:hidden;text-overflow:ellipsis
-}
-.bc-item:hover{color:var(--t2)}
-.bc-item.cur{color:var(--teal2);background:var(--td)}
-.bc-sep{font-size:11px;color:var(--t4)}
-
-/* ── Phases ── */
-.phase{padding:16px 16px 4px;display:none}
+.phase{display:none}
 .phase.on{display:block;animation:fu .2s ease}
 @keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── Category cards ── */
-.cg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.cc{
-  display:flex;align-items:center;gap:10px;
-  background:var(--w6);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:var(--r);
-  padding:13px 11px;
-  cursor:pointer;
-  transition:all .15s
+/* ── Selected symptom tray ── */
+.tray{
+  padding:12px 16px;border-bottom:1px solid var(--w6);
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:46px
 }
-.cc:hover{background:var(--w8);border-color:var(--w15)}
-.cc.sel{background:var(--td);border-color:var(--tb)}
-.ci{
-  width:42px;height:42px;border-radius:11px;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0
+.tray-empty{font-size:12px;color:var(--t3)}
+.tray-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--td);border:1px solid var(--tb);border-radius:16px;
+  padding:5px 6px 5px 11px;font-size:12px;color:var(--teal2);font-weight:500
 }
-.ci svg{width:22px;height:22px}
-.cn{font-size:12px;font-weight:600;color:var(--t1);line-height:1.25;margin-bottom:2px}
-.ck{font-size:10px;color:var(--t3)}
+.tray-chip .x{cursor:pointer;font-size:13px;opacity:.6;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.tray-chip .x:hover{opacity:1;background:rgba(255,255,255,.1)}
 
-/* Back button */
-.back{
-  display:inline-flex;align-items:center;gap:5px;
-  background:none;border:1px solid var(--w8);
-  border-radius:20px;color:var(--t2);
-  font-family:'Noto Sans KR',sans-serif;
-  font-size:12px;padding:5px 12px;
-  cursor:pointer;margin-bottom:14px;
-  transition:all .15s
-}
-.back:hover{border-color:var(--w15);color:var(--t1)}
-.back svg{width:13px;height:13px}
-
-.sec-lbl{
-  font-size:10px;font-weight:600;letter-spacing:.7px;
-  text-transform:uppercase;color:var(--t3);margin-bottom:9px
-}
-
-/* Primary pills */
-.pp{display:flex;flex-wrap:wrap;gap:6px}
-.ppill{
-  background:var(--w6);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:20px;color:var(--t2);
-  font-family:'Noto Sans KR',sans-serif;
-  font-size:12px;padding:7px 14px;
+/* ── Category accordion ── */
+.cat-list{padding:12px 16px 4px;display:flex;flex-direction:column;gap:7px}
+.cat{border:1px solid rgba(255,255,255,.07);border-radius:var(--r);background:var(--w6);overflow:hidden}
+.cat-head{display:flex;align-items:center;gap:10px;padding:12px 12px;cursor:pointer;transition:background .15s}
+.cat-head:hover{background:var(--w8)}
+.cat.open .cat-head{background:var(--w8)}
+.ci{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci svg{width:20px;height:20px}
+.cn{font-size:12.5px;font-weight:600;color:var(--t1);flex:1}
+.ck{font-size:10px;color:var(--t3);margin-right:4px}
+.cat-head .chev{width:14px;height:14px;color:var(--t3);transition:transform .2s;flex-shrink:0}
+.cat.open .cat-head .chev{transform:rotate(180deg)}
+.cat-body{display:none;padding:0 12px 12px}
+.cat.open .cat-body{display:flex;flex-wrap:wrap;gap:6px}
+.pill{
+  background:var(--w6);border:1px solid rgba(255,255,255,.08);border-radius:20px;
+  color:var(--t2);font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:7px 13px;
   cursor:pointer;transition:all .15s
 }
-.ppill:hover{background:var(--td);border-color:var(--tb);color:var(--teal2)}
-.ppill.on{background:var(--td);border-color:var(--teal);color:var(--teal2);font-weight:600}
+.pill:hover{background:var(--td);border-color:var(--tb);color:var(--teal2)}
+.pill.on{background:var(--teal);border-color:var(--teal);color:#08192e;font-weight:600}
 
-/* Secondary list */
-.sl{display:flex;flex-direction:column;gap:5px}
-.sbtn{
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:var(--rs);color:var(--t2);
-  font-family:'Noto Sans KR',sans-serif;
-  font-size:13px;padding:11px 14px;
-  cursor:pointer;text-align:left;
-  transition:all .15s;
-  display:flex;align-items:center;gap:8px
+/* sticky next button */
+.stickybar{position:sticky;bottom:0;background:linear-gradient(to top,var(--navy) 70%,transparent);padding:14px 16px 12px}
+.nextbtn{
+  width:100%;background:var(--teal);color:#08192e;border:none;border-radius:var(--rs);
+  padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .15s
 }
-.sbtn::before{
-  content:'';width:5px;height:5px;
-  border-radius:50%;background:var(--t4);
-  flex-shrink:0;transition:background .15s
+.nextbtn:hover{background:var(--teal2)}
+.nextbtn:disabled{background:var(--w8);color:var(--t3);cursor:not-allowed}
+.backbtn{
+  display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--w8);
+  border-radius:20px;color:var(--t2);font-family:'Noto Sans KR',sans-serif;font-size:12px;
+  padding:5px 12px;cursor:pointer;margin:14px 16px 6px;transition:all .15s
 }
-.sbtn:hover{background:var(--td);border-color:var(--tb);color:var(--teal2)}
-.sbtn:hover::before,.sbtn.on::before{background:var(--teal)}
-.sbtn.on{background:var(--td);border-color:var(--teal);color:var(--teal2);font-weight:600}
+.backbtn:hover{border-color:var(--w15);color:var(--t1)}
+.backbtn svg{width:13px;height:13px}
 
-/* Divider */
-.div{height:1px;background:var(--w6);margin:4px 0}
+/* ── Risk level cards ── */
+.risk-intro{padding:14px 16px 4px;font-size:12px;color:var(--t2);line-height:1.6}
+.risk-list{padding:10px 16px 4px;display:flex;flex-direction:column;gap:8px}
+.risk{
+  border:1px solid rgba(255,255,255,.08);border-radius:var(--r);background:var(--w6);
+  padding:12px 14px;cursor:pointer;transition:all .15s;display:flex;gap:12px;align-items:flex-start
+}
+.risk:hover{background:var(--w8);border-color:var(--w15)}
+.risk.on{border-color:var(--ac,var(--teal));background:var(--td)}
+.risk-num{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:#08192e
+}
+.risk-t{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:2px}
+.risk-d{font-size:11.5px;color:var(--t3);line-height:1.5}
 
-/* Results */
+/* ── Conditions ── */
+.cond-intro{padding:14px 16px 6px}
+.cond-tag{
+  display:inline-block;font-size:10.5px;font-weight:600;color:var(--teal2);
+  background:var(--td);border-radius:4px;padding:3px 8px;margin-bottom:6px
+}
+.cond-list{padding:4px 16px 10px;display:flex;flex-direction:column;gap:6px}
+.cond{
+  border:1px solid rgba(255,255,255,.08);border-radius:var(--rs);background:var(--w6);
+  padding:11px 14px;cursor:pointer;transition:all .15s;text-align:left
+}
+.cond:hover{background:var(--w8);border-color:var(--w15)}
+.cond.on{border-color:var(--teal);background:var(--td)}
+.cond-name{font-size:13px;font-weight:600;color:var(--t1)}
+.cond-dept{font-size:11px;color:var(--t3);margin-top:2px}
+.cond-hr{display:inline-block;font-size:10px;font-weight:700;color:var(--red);background:rgba(239,68,68,.15);border-radius:4px;padding:1px 6px;margin-left:6px}
+
+/* ── High-acuity banner ── */
+.banner{
+  margin:10px 16px;padding:13px 14px;border-radius:var(--r);
+  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);
+  display:flex;gap:10px;align-items:flex-start
+}
+.banner svg{width:18px;height:18px;color:var(--red);flex-shrink:0;margin-top:1px}
+.banner-t{font-size:12.5px;font-weight:700;color:#fca5a5;margin-bottom:3px}
+.banner-d{font-size:11.5px;color:rgba(252,165,165,.85);line-height:1.6}
+
+/* ── Results ── */
+.div{height:1px;background:var(--w6);margin:6px 0}
 .rs{padding:0 16px 20px}
 .rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .rc{font-size:11px;color:var(--t3)}
 .rc span{color:var(--teal2);font-weight:700}
-
 .radrow{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .radrow label{font-size:11px;color:var(--t3);white-space:nowrap}
 .radrow input{flex:1;accent-color:var(--teal)}
 .radrow em{font-size:11px;color:var(--teal2);font-weight:600;min-width:32px;text-align:right;font-style:normal}
 
 .hcs{display:flex;flex-direction:column;gap:6px}
-.hc{
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:var(--rs);padding:12px 14px;
-  cursor:pointer;transition:all .15s
-}
+.hc{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rs);padding:12px 14px;cursor:pointer;transition:all .15s}
 .hc:hover{background:var(--w8);border-color:var(--w15)}
 .hc.fc{border-color:var(--teal);background:var(--td)}
 .ht{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px}
 .hn{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
 .hd{font-size:11px;font-weight:700;color:var(--teal2);white-space:nowrap;flex-shrink:0}
-.hdept{display:inline-block;font-size:10px;color:var(--teal2);background:var(--td);border-radius:4px;padding:2px 7px;font-weight:600;margin-bottom:5px}
+.hbadges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px}
+.hdept{display:inline-block;font-size:10px;color:var(--teal2);background:var(--td);border-radius:4px;padding:2px 7px;font-weight:600}
+.hfac{display:inline-block;font-size:10px;border-radius:4px;padding:2px 7px;font-weight:600}
+.hfac.tier-high{color:#fca5a5;background:rgba(239,68,68,.15)}
+.hfac.tier-low{color:var(--t2);background:var(--w8)}
 .hi{font-size:11px;color:var(--t3)}
 .hop{color:var(--green);font-weight:600}
 
-/* Misc */
 .empty{padding:20px;text-align:center;color:var(--t3);font-size:13px;line-height:1.7}
 .ld{display:flex;align-items:center;justify-content:center;gap:8px;padding:22px;color:var(--t3);font-size:13px}
 .spin{width:16px;height:16px;border:2px solid var(--td);border-top-color:var(--teal);border-radius:50%;animation:sp .7s linear infinite}
@@ -227,25 +222,12 @@ html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;back
 .mw{flex:1;position:relative;overflow:hidden}
 #map{width:100%;height:100%}
 .mctrl{position:absolute;top:16px;right:16px;z-index:1000;display:flex;flex-direction:column;gap:8px}
-.mbtn{
-  background:#fff;border:none;border-radius:10px;
-  padding:9px 14px;
-  font-family:'Noto Sans KR',sans-serif;
-  font-size:12px;font-weight:600;color:var(--navy);
-  cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.13);
-  display:flex;align-items:center;gap:6px;transition:all .15s
-}
+.mbtn{background:#fff;border:none;border-radius:10px;padding:9px 14px;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.13);display:flex;align-items:center;gap:6px;transition:all .15s}
 .mbtn:hover{background:#f0f9ff;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .mbtn svg{width:15px;height:15px}
-.toast{
-  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
-  z-index:1000;background:rgba(8,25,46,.92);color:#fff;
-  font-size:13px;padding:9px 20px;border-radius:30px;font-weight:500;
-  opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none
-}
+.toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;background:rgba(8,25,46,.92);color:#fff;font-size:13px;padding:9px 20px;border-radius:30px;font-weight:500;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none}
 .toast.on{opacity:1}
 
-/* Leaflet popup overrides */
 .leaflet-popup-content-wrapper{border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,.15)!important;padding:0!important;overflow:hidden}
 .leaflet-popup-content{margin:0!important;width:228px!important}
 .leaflet-popup-tip-container{display:none}
@@ -260,9 +242,7 @@ html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;back
 <body>
 <div class="app">
 
-<!-- ══ Sidebar ══ -->
 <aside class="sb" id="sb">
-  <!-- Header -->
   <div class="sbh">
     <div class="logo">
       <svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round">
@@ -271,83 +251,88 @@ html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;back
     </div>
     <div class="logo-t">
       <h1>증상별 병원 찾기</h1>
-      <p>원클릭 필터 · 지도 매칭</p>
+      <p>다중 증상 · 위험도 기반 매칭</p>
     </div>
   </div>
 
+  <div class="steps">
+    <div class="step-tab active" id="tab0" data-p="0"><div class="num">1</div>증상 선택</div>
+    <div class="step-tab" id="tab1" data-p="1"><div class="num">2</div>위험도</div>
+    <div class="step-tab" id="tab2" data-p="2"><div class="num">3</div>질환·병원</div>
+  </div>
+
   <div class="sbb">
-    <!-- Breadcrumb -->
-    <div class="bc" id="bc">
-      <span class="bc-item cur" id="bc0" onclick="toPhase(0)">증상 분류</span>
-      <span class="bc-sep" id="bca1" style="display:none">›</span>
-      <span class="bc-item" id="bc1" style="display:none"></span>
-      <span class="bc-sep" id="bca2" style="display:none">›</span>
-      <span class="bc-item" id="bc2" style="display:none"></span>
-    </div>
 
-    <!-- Phase 0: Category grid -->
+    <!-- ═══ Phase 0: 증상 선택 ═══ -->
     <div class="phase on" id="p0">
-      <div class="cg" id="cg"></div>
+      <div class="tray" id="tray">
+        <span class="tray-empty">증상을 선택하면 여기에 표시됩니다 (여러 개 선택 가능)</span>
+      </div>
+      <div class="cat-list" id="catList"></div>
+      <div class="stickybar">
+        <button class="nextbtn" id="toRiskBtn" disabled onclick="goPhase(1)">증상 선택 완료 (0개)</button>
+      </div>
     </div>
 
-    <!-- Phase 1: Primary pills -->
+    <!-- ═══ Phase 1: 위험도 ═══ -->
     <div class="phase" id="p1">
-      <button class="back" onclick="toPhase(0)">
+      <button class="backbtn" onclick="goPhase(0)">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-        카테고리로
+        증상 다시 선택
       </button>
-      <p class="sec-lbl">어떤 증상인가요?</p>
-      <div class="pp" id="pp"></div>
+      <p class="risk-intro">현재 느끼는 통증/불편감의 정도를 선택해주세요. 결과에서 병원 범위를 결정하는 데 사용됩니다.</p>
+      <div class="risk-list" id="riskList"></div>
+      <div class="stickybar">
+        <button class="nextbtn" id="toCondBtn" disabled onclick="goPhase(2)">다음</button>
+      </div>
     </div>
 
-    <!-- Phase 2: Secondary symptoms -->
+    <!-- ═══ Phase 2: 질환 + 병원 결과 ═══ -->
     <div class="phase" id="p2">
-      <button class="back" onclick="toPhase(1)">
+      <button class="backbtn" onclick="goPhase(1)">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-        증상으로
+        위험도 다시 선택
       </button>
-      <p class="sec-lbl">세부 증상을 선택하세요</p>
-      <div class="sl" id="sl">
-        <div class="ld"><div class="spin"></div><span>불러오는 중…</span></div>
+      <div class="cond-intro">
+        <span class="cond-tag" id="matchTag">분석 중…</span>
+        <p style="font-size:12.5px;color:var(--t2);margin-top:4px;line-height:1.6">선택한 증상과 가장 관련 있는 의심 질환입니다. 하나를 선택하면 해당 진료과의 병원을 찾아드려요.</p>
+      </div>
+      <div class="cond-list" id="condList">
+        <div class="ld"><div class="spin"></div><span>분석 중…</span></div>
+      </div>
+
+      <div id="banner"></div>
+
+      <div class="div" id="rdiv" style="display:none;margin:0 16px"></div>
+      <div id="rw" style="display:none">
+        <div class="rs">
+          <div class="radrow">
+            <label>반경</label>
+            <input type="range" id="rslider" min="1" max="20" value="5" step="1" oninput="onRad(this.value)">
+            <em id="rval">2km</em>
+          </div>
+          <div class="rh">
+            <span class="rc">총 <span id="rcnt">0</span>개 병원</span>
+            <span class="rc" id="rdept">—</span>
+          </div>
+          <div class="hcs" id="hcs"></div>
+        </div>
       </div>
     </div>
 
-    <!-- Results (persistent bottom) -->
-    <div class="div" id="rdiv" style="display:none;margin:0 16px"></div>
-    <div id="rw" style="display:none">
-      <div class="rs">
-        <div class="radrow">
-          <label>반경</label>
-          <input type="range" id="rslider" min="1" max="20" value="5" step="1" oninput="onRad(this.value)">
-          <em id="rval">5km</em>
-        </div>
-        <div class="rh">
-          <span class="rc">총 <span id="rcnt">0</span>개 병원</span>
-          <span class="rc" id="rdept">—</span>
-        </div>
-        <div class="hcs" id="hcs">
-          <div class="empty">증상 선택 후 병원을 표시합니다</div>
-        </div>
-      </div>
-    </div>
-  </div><!-- /sbb -->
+  </div>
 </aside>
 
-<!-- Toggle button -->
 <button id="tog" onclick="toggleSb()" title="사이드바 접기·펼치기">
-  <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-    <path d="M9 2L4 7l5 5"/>
-  </svg>
+  <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
 </button>
 
-<!-- ══ Map ══ -->
 <div class="mw">
   <div id="map"></div>
   <div class="mctrl">
     <button class="mbtn" onclick="goMe()">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <circle cx="8" cy="8" r="2.5"/>
-        <path d="M8 1v2M8 13v2M1 8h2M13 8h2"/>
+        <circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/>
       </svg>
       내 위치
     </button>
@@ -358,107 +343,59 @@ html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;back
 
 <script>
 const API='http://localhost:5000';
-const DEPT={'1':'내과','2':'신경과','3':'정신건강의학과','4':'외과','5':'정형외과','6':'신경외과','7':'흉부외과','8':'성형외과','9':'마취통증의학과','10':'산부인과','11':'소아청소년과','12':'안과','13':'이비인후과','14':'피부과','15':'비뇨의학과','21':'재활의학과','23':'가정의학과','24':'응급의학과','49':'치과','80':'한의원'};
 const DAYS=['sun_hours','mon_hours','tue_hours','wed_hours','thu_hours','fri_hours','sat_hours'];
 const DKR=['일','월','화','수','목','금','토'];
+const HIGH_TIER={'1':1,'11':1,'21':1};
+const FAC_LABEL={'1':'상급종합','11':'종합병원','21':'병원','29':'정신병원','41':'치과병원','51':'치과의원','31':'의원','92':'한방병원','93':'한의원','28':'요양병원','71':'보건소','72':'보건지소','73':'보건진료소','75':'보건의료원'};
 
-/* ── Symptom groups ── */
+/* ── 증상 카테고리 (UI 분류용) ── */
 const GRP=[
-  {id:'resp',nm:'호흡기',c:'#0ea5c5',bg:'rgba(14,165,197,.18)',
-   syms:['감기','기침','콧물','코막힘','잦은 감기'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-     <line x1="14" y1="4" x2="14" y2="11"/>
-     <path d="M14 11c-2 0-5 2-6 5.5s-.5 7 1.5 8 4-.5 5-2.5.5-5.5.5-7"/>
-     <path d="M14 11c2 0 5 2 6 5.5s.5 7-1.5 8-4-.5-5-2.5-.5-5.5-.5-7"/>
-   </svg>`},
-  {id:'fever',nm:'발열·전신',c:'#f97316',bg:'rgba(249,115,22,.18)',
-   syms:['발열','만성 피로','체중 감소','체중 증가','수족냉증','건강검진 상담'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-     <rect x="11.5" y="4" width="5" height="13" rx="2.5"/>
-     <circle cx="14" cy="20.5" r="3.5"/>
-     <line x1="14" y1="15" x2="14" y2="18"/>
-   </svg>`},
-  {id:'neuro',nm:'두통·신경',c:'#8b5cf6',bg:'rgba(139,92,246,.18)',
-   syms:['두통','어지럼증','기억력 저하','불면증','손발 저림','마비 증상'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-     <circle cx="14" cy="11" r="6.5"/>
-     <path d="M10.5 23v-4.5h7V23"/>
-     <line x1="10.5" y1="23" x2="17.5" y2="23"/>
-     <path d="M13 9l-1.5 3h3.5l-1.5 3" stroke-width="1.6"/>
-   </svg>`},
-  {id:'mental',nm:'정신건강',c:'#ec4899',bg:'rgba(236,72,153,.18)',
-   syms:['우울감','불안'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-     <circle cx="14" cy="11" r="6.5"/>
-     <path d="M10.5 23v-4.5h7V23M10.5 23h7"/>
-     <path d="M11 10q1.5-2.5 3 0t3 0" stroke-width="1.5"/>
-     <path d="M11 13q1.5-2.5 3 0t3 0" stroke-width="1.5"/>
-   </svg>`},
-  {id:'heart',nm:'가슴·심장',c:'#ef4444',bg:'rgba(239,68,68,.18)',
-   syms:['가슴 통증','두근거림','호흡 곤란'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-     <path d="M14 22.5S5 17 5 11a5.5 5.5 0 0 1 9-4.2A5.5 5.5 0 0 1 23 11c0 6-9 11.5-9 11.5z"/>
-   </svg>`},
-  {id:'gi',nm:'소화기',c:'#22c55e',bg:'rgba(34,197,94,.18)',
-   syms:['복통','설사','변비','구토','속쓰림'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-     <path d="M10 8.5c0-2.5 1.5-4.5 4-4.5s4 2 4 4.5v2c3 1 4.5 4 4.5 6s-1.5 6.5-5.5 6.5H11c-4 0-5.5-4.5-5.5-6.5s1.5-5 4.5-6z"/>
-   </svg>`},
-  {id:'msk',nm:'근골격',c:'#94a3b8',bg:'rgba(148,163,184,.18)',
-   syms:['허리 통증','목 통증','어깨 통증','무릎 통증','손목 통증'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-     <line x1="14" y1="3" x2="14" y2="25"/>
-     <rect x="10" y="5" width="8" height="4" rx="2"/>
-     <rect x="10" y="11" width="8" height="4" rx="2"/>
-     <rect x="10" y="17" width="8" height="4" rx="2"/>
-   </svg>`},
-  {id:'eye',nm:'눈',c:'#06b6d4',bg:'rgba(6,182,212,.18)',
-   syms:['눈 통증','시력 저하','눈 건조'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-     <path d="M4 14s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/>
-     <circle cx="14" cy="14" r="3"/>
-     <circle cx="14" cy="14" r="1.2" fill="currentColor" stroke="none"/>
-   </svg>`},
-  {id:'ent',nm:'귀·코·목',c:'#f59e0b',bg:'rgba(245,158,11,.18)',
-   syms:['귀 통증','귀 먹먹함','목 붓기','쉰 목소리'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-     <path d="M17 5.5a7.5 7.5 0 0 0-7.5 7.5c0 2.5 1 4 2 5.5l.5 4h4l.5-4c2-.5 4-3 4-5.5a7.5 7.5 0 0 0-3.5-7.5z"/>
-     <path d="M13 11.5a3.5 3.5 0 0 0-1 2.5"/>
-   </svg>`},
-  {id:'skin',nm:'피부',c:'#a78bfa',bg:'rgba(167,139,250,.18)',
-   syms:['피부 가려움','여드름','탈모','사마귀','화상','상처','멍울'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-     <circle cx="9" cy="9" r="2.2"/>
-     <circle cx="19.5" cy="8" r="1.7"/>
-     <circle cx="22" cy="16" r="1.7"/>
-     <circle cx="14" cy="13.5" r="2.7"/>
-     <circle cx="8" cy="19.5" r="1.7"/>
-     <circle cx="18.5" cy="20.5" r="2.2"/>
-   </svg>`},
-  {id:'women',nm:'여성건강',c:'#f472b6',bg:'rgba(244,114,182,.18)',
-   syms:['생리통','질 분비물 이상','임신 의심','갱년기 증상'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-     <circle cx="14" cy="10" r="6.5"/>
-     <line x1="14" y1="16.5" x2="14" y2="24"/>
-     <line x1="10" y1="20.5" x2="18" y2="20.5"/>
-   </svg>`},
-  {id:'uro',nm:'비뇨기',c:'#38bdf8',bg:'rgba(56,189,248,.18)',
-   syms:['소변 통증','야간뇨','요실금'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-     <path d="M14 4L7 18a7 7 0 0 0 14 0L14 4z"/>
-   </svg>`},
-  {id:'dent',nm:'구강·치과',c:'#34d399',bg:'rgba(52,211,153,.18)',
-   syms:['치통','턱관절 통증','입냄새'],
-   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-     <path d="M9 5c-3 0-5 3-5 6 0 5 3 7.5 5 7.5h1.5v3c0 3 1 5 3.5 5s3.5-2 3.5-5v-3H19c2 0 5-2.5 5-7.5 0-3-2-6-5-6z"/>
-   </svg>`}
+  {id:'resp',nm:'호흡기',c:'#0ea5c5',bg:'rgba(14,165,197,.18)',syms:['감기','기침','콧물','코막힘','잦은 감기'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="4" x2="14" y2="11"/><path d="M14 11c-2 0-5 2-6 5.5s-.5 7 1.5 8 4-.5 5-2.5.5-5.5.5-7"/><path d="M14 11c2 0 5 2 6 5.5s.5 7-1.5 8-4-.5-5-2.5-.5-5.5-.5-7"/></svg>`},
+  {id:'fever',nm:'발열·전신',c:'#f97316',bg:'rgba(249,115,22,.18)',syms:['발열','만성 피로','체중 감소','체중 증가','수족냉증','건강검진 상담'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="11.5" y="4" width="5" height="13" rx="2.5"/><circle cx="14" cy="20.5" r="3.5"/><line x1="14" y1="15" x2="14" y2="18"/></svg>`},
+  {id:'neuro',nm:'두통·신경',c:'#8b5cf6',bg:'rgba(139,92,246,.18)',syms:['두통','어지럼증','기억력 저하','불면증','손발 저림','마비 증상'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="11" r="6.5"/><path d="M10.5 23v-4.5h7V23"/><line x1="10.5" y1="23" x2="17.5" y2="23"/><path d="M13 9l-1.5 3h3.5l-1.5 3" stroke-width="1.6"/></svg>`},
+  {id:'mental',nm:'정신건강',c:'#ec4899',bg:'rgba(236,72,153,.18)',syms:['우울감','불안'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="14" cy="11" r="6.5"/><path d="M10.5 23v-4.5h7V23M10.5 23h7"/><path d="M11 10q1.5-2.5 3 0t3 0" stroke-width="1.5"/><path d="M11 13q1.5-2.5 3 0t3 0" stroke-width="1.5"/></svg>`},
+  {id:'heart',nm:'가슴·심장',c:'#ef4444',bg:'rgba(239,68,68,.18)',syms:['가슴 통증','두근거림','호흡 곤란'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 22.5S5 17 5 11a5.5 5.5 0 0 1 9-4.2A5.5 5.5 0 0 1 23 11c0 6-9 11.5-9 11.5z"/></svg>`},
+  {id:'gi',nm:'소화기',c:'#22c55e',bg:'rgba(34,197,94,.18)',syms:['복통','설사','변비','구토','속쓰림'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8.5c0-2.5 1.5-4.5 4-4.5s4 2 4 4.5v2c3 1 4.5 4 4.5 6s-1.5 6.5-5.5 6.5H11c-4 0-5.5-4.5-5.5-6.5s1.5-5 4.5-6z"/></svg>`},
+  {id:'msk',nm:'근골격',c:'#94a3b8',bg:'rgba(148,163,184,.18)',syms:['허리 통증','목 통증','어깨 통증','무릎 통증','손목 통증'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="14" y1="3" x2="14" y2="25"/><rect x="10" y="5" width="8" height="4" rx="2"/><rect x="10" y="11" width="8" height="4" rx="2"/><rect x="10" y="17" width="8" height="4" rx="2"/></svg>`},
+  {id:'eye',nm:'눈',c:'#06b6d4',bg:'rgba(6,182,212,.18)',syms:['눈 통증','시력 저하','눈 건조'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 14s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="14" cy="14" r="3"/><circle cx="14" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg>`},
+  {id:'ent',nm:'귀·코·목',c:'#f59e0b',bg:'rgba(245,158,11,.18)',syms:['귀 통증','귀 먹먹함','목 붓기','쉰 목소리'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 5.5a7.5 7.5 0 0 0-7.5 7.5c0 2.5 1 4 2 5.5l.5 4h4l.5-4c2-.5 4-3 4-5.5a7.5 7.5 0 0 0-3.5-7.5z"/><path d="M13 11.5a3.5 3.5 0 0 0-1 2.5"/></svg>`},
+  {id:'skin',nm:'피부',c:'#a78bfa',bg:'rgba(167,139,250,.18)',syms:['피부 가려움','여드름','탈모','사마귀','화상','상처','멍울'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9" cy="9" r="2.2"/><circle cx="19.5" cy="8" r="1.7"/><circle cx="22" cy="16" r="1.7"/><circle cx="14" cy="13.5" r="2.7"/><circle cx="8" cy="19.5" r="1.7"/><circle cx="18.5" cy="20.5" r="2.2"/></svg>`},
+  {id:'women',nm:'여성건강',c:'#f472b6',bg:'rgba(244,114,182,.18)',syms:['생리통','질 분비물 이상','임신 의심','갱년기 증상'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="14" cy="10" r="6.5"/><line x1="14" y1="16.5" x2="14" y2="24"/><line x1="10" y1="20.5" x2="18" y2="20.5"/></svg>`},
+  {id:'uro',nm:'비뇨기',c:'#38bdf8',bg:'rgba(56,189,248,.18)',syms:['소변 통증','야간뇨','요실금'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4L7 18a7 7 0 0 0 14 0L14 4z"/></svg>`},
+  {id:'dent',nm:'구강·치과',c:'#34d399',bg:'rgba(52,211,153,.18)',syms:['치통','턱관절 통증','입냄새'],
+   ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5c-3 0-5 3-5 6 0 5 3 7.5 5 7.5h1.5v3c0 3 1 5 3.5 5s3.5-2 3.5-5v-3H19c2 0 5-2.5 5-7.5 0-3-2-6-5-6z"/></svg>`}
+];
+
+/* ── 위험도 5단계 ── */
+const RISK_LEVELS=[
+  {lv:1,t:'1단계 · 가벼운 통증',d:'살짝 불편하지만 일상생활에는 전혀 지장이 없어요.',color:'#22c55e'},
+  {lv:2,t:'2단계 · 경미한 증상',d:'신경은 쓰이지만 평소 활동은 그대로 할 수 있어요.',color:'#84cc16'},
+  {lv:3,t:'3단계 · 중등도 증상',d:'일상생활에 다소 지장이 있고, 며칠째 지속돼요.',color:'#f59e0b'},
+  {lv:4,t:'4단계 · 심한 증상',d:'통증이 심해 일상생활이 어렵고 빠른 진료가 필요해요.',color:'#f97316'},
+  {lv:5,t:'5단계 · 응급 상황',d:'참기 힘든 통증이거나 일상생활이 불가능한 수준이에요.',color:'#ef4444'},
 ];
 
 /* ── State ── */
 let map,uMkr,mkrs=[],uLat=37.5665,uLng=126.978;
-let curG=null,curP=null,curS=null,curD=null,rad=5,focEl=null,sbOpen=true;
+let selSyms=new Set();
+let riskLv=null;
+let curCond=null,curDeptCodes=[],curHighAcuity=false;
+let rad=2,focEl=null,sbOpen=true;
+let matchCache=null;
 
-/* ── Map init ── */
+/* ══════ Map ══════ */
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView([uLat,uLng],14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(map);
@@ -486,112 +423,249 @@ function showToast(msg,dur=2600){
   clearTimeout(tT);tT=setTimeout(()=>el.classList.remove('on'),dur);
 }
 
-/* ── Sidebar toggle ── */
 function toggleSb(){
   sbOpen=!sbOpen;
-  const sb=document.getElementById('sb');
-  const btn=document.getElementById('tog');
+  const sb=document.getElementById('sb'),btn=document.getElementById('tog');
   sb.classList.toggle('closed',!sbOpen);
   btn.classList.toggle('closed',!sbOpen);
   btn.style.left=sbOpen?'calc(var(--sb) - 16px)':'8px';
   setTimeout(()=>map.invalidateSize(),360);
 }
 
-/* ── Categories ── */
+/* ══════ Phase 0: 증상 선택 ══════ */
 function renderCats(){
-  const g=document.getElementById('cg');g.innerHTML='';
+  const list=document.getElementById('catList');list.innerHTML='';
   GRP.forEach(gr=>{
-    const d=document.createElement('div');
-    d.className='cc';d.dataset.id=gr.id;
-    d.innerHTML=`<div class="ci" style="background:${gr.bg};color:${gr.c}">${gr.ico}</div>
-      <div><div class="cn">${gr.nm}</div><div class="ck">${gr.syms.length}개 증상</div></div>`;
-    d.onclick=()=>selCat(gr);
-    g.appendChild(d);
-  });
-}
-
-function selCat(gr){
-  curG=gr;curP=null;curS=null;curD=null;
-  document.querySelectorAll('.cc').forEach(c=>c.classList.toggle('sel',c.dataset.id===gr.id));
-  // Render primary pills
-  const pp=document.getElementById('pp');pp.innerHTML='';
-  gr.syms.forEach(s=>{
-    const b=document.createElement('button');
-    b.className='ppill';b.textContent=s;
-    b.onclick=()=>selPrimary(s);
-    pp.appendChild(b);
-  });
-  setBc(1,gr.nm);hideBc(2);
-  toPhase(1);hideRes();
-}
-
-async function selPrimary(sym){
-  curP=sym;curS=null;curD=null;
-  document.querySelectorAll('.ppill').forEach(b=>b.classList.toggle('on',b.textContent===sym));
-  setBc(2,sym);
-  toPhase(2);hideRes();
-  const sl=document.getElementById('sl');
-  sl.innerHTML=`<div class="ld"><div class="spin"></div><span>불러오는 중…</span></div>`;
-  try{
-    const r=await fetch(`${API}/api/secondary_symptoms?primary=${encodeURIComponent(sym)}`);
-    const data=await r.json();
-    sl.innerHTML='';
-    data.forEach(item=>{
-      const b=document.createElement('button');
-      b.className='sbtn';b.textContent=item;
-      b.onclick=()=>selSecondary(item);
-      sl.appendChild(b);
+    const card=document.createElement('div');card.className='cat';card.dataset.id=gr.id;
+    const head=document.createElement('div');head.className='cat-head';
+    head.innerHTML=`<div class="ci" style="background:${gr.bg};color:${gr.c}">${gr.ico}</div>
+      <div class="cn">${gr.nm}</div><span class="ck">${gr.syms.length}개</span>
+      <svg class="chev" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l4 4 4-4"/></svg>`;
+    head.onclick=()=>{card.classList.toggle('open')};
+    const body=document.createElement('div');body.className='cat-body';
+    gr.syms.forEach(s=>{
+      const b=document.createElement('button');b.className='pill';b.textContent=s;
+      if(selSyms.has(s))b.classList.add('on');
+      b.onclick=(e)=>{e.stopPropagation();toggleSym(s)};
+      body.appendChild(b);
     });
-  }catch(e){sl.innerHTML=`<div class="empty">불러오기 실패</div>`;}
-}
-
-async function selSecondary(sym){
-  curS=sym;
-  document.querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('on',b.textContent===sym));
-  await fetchH();
-}
-
-/* ── Phase nav ── */
-function toPhase(n){
-  [0,1,2].forEach(i=>{
-    const el=document.getElementById(`p${i}`);
-    if(i===n){el.classList.add('on');el.style.display='block';}
-    else{el.classList.remove('on');el.style.display='none';}
+    card.appendChild(head);card.appendChild(body);list.appendChild(card);
   });
-  if(n===0){resetBc();hideRes();curG=null;curP=null;curS=null;curD=null;clearMkrs();}
-  if(n===1){hideBc(2);hideRes();curS=null;curD=null;clearMkrs();}
 }
 
-/* ── Breadcrumb ── */
-function setBc(n,txt){
-  document.getElementById(`bca${n}`).style.display='';
-  const c=document.getElementById(`bc${n}`);
-  c.textContent=txt;c.style.display='';
-  [0,1,2].forEach(i=>{const e=document.getElementById(`bc${i}`);if(e)e.classList.toggle('cur',i===n);});
+function toggleSym(s){
+  if(selSyms.has(s))selSyms.delete(s);else selSyms.add(s);
+  renderTray();
+  document.querySelectorAll('.pill').forEach(b=>{
+    if(b.textContent===s)b.classList.toggle('on',selSyms.has(s));
+  });
+  const btn=document.getElementById('toRiskBtn');
+  btn.disabled=selSyms.size===0;
+  btn.textContent=`증상 선택 완료 (${selSyms.size}개)`;
 }
-function hideBc(n){document.getElementById(`bca${n}`).style.display='none';document.getElementById(`bc${n}`).style.display='none';}
-function resetBc(){[1,2].forEach(n=>hideBc(n));document.getElementById('bc0').classList.add('cur');}
 
-/* ── Results ── */
-function hideRes(){
+function renderTray(){
+  const tray=document.getElementById('tray');
+  if(selSyms.size===0){
+    tray.innerHTML='<span class="tray-empty">증상을 선택하면 여기에 표시됩니다 (여러 개 선택 가능)</span>';
+    return;
+  }
+  tray.innerHTML='';
+  selSyms.forEach(s=>{
+    const chip=document.createElement('span');chip.className='tray-chip';
+    chip.innerHTML=`${s}<span class="x">✕</span>`;
+    chip.querySelector('.x').onclick=()=>toggleSym(s);
+    tray.appendChild(chip);
+  });
+}
+
+/* ══════ Phase 1: 위험도 ══════ */
+function renderRisk(){
+  const list=document.getElementById('riskList');list.innerHTML='';
+  RISK_LEVELS.forEach(r=>{
+    const d=document.createElement('div');d.className='risk';d.style.setProperty('--ac',r.color);
+    if(riskLv===r.lv)d.classList.add('on');
+    d.innerHTML=`<div class="risk-num" style="background:${r.color}">${r.lv}</div>
+      <div><div class="risk-t">${r.t}</div><div class="risk-d">${r.d}</div></div>`;
+    d.onclick=()=>{
+      riskLv=r.lv;
+      document.querySelectorAll('.risk').forEach(x=>x.classList.remove('on'));
+      d.classList.add('on');
+      document.getElementById('toCondBtn').disabled=false;
+    };
+    list.appendChild(d);
+  });
+}
+
+/* ══════ Phase navigation ══════ */
+function goPhase(n){
+  [0,1,2].forEach(i=>{
+    document.getElementById(`p${i}`).classList.toggle('on',i===n);
+    const tab=document.getElementById(`tab${i}`);
+    tab.classList.remove('active','done','clickable');
+    if(i<n)tab.classList.add('done','clickable');
+    if(i===n)tab.classList.add('active');
+    if(i>n)tab.classList.remove('done');
+  });
+  if(n===0){
+    renderCats();
+  }
+  if(n===1){
+    renderRisk();
+  }
+  if(n===2){
+    runMatch();
+  }
+}
+
+document.getElementById('tab0').onclick=()=>{ if(document.getElementById('tab0').classList.contains('clickable')) goPhase(0); };
+document.getElementById('tab1').onclick=()=>{ if(document.getElementById('tab1').classList.contains('clickable')) goPhase(1); };
+
+/* ══════ Phase 2: 질환 매칭 ══════ */
+async function runMatch(){
+  document.getElementById('banner').innerHTML='';
   document.getElementById('rdiv').style.display='none';
   document.getElementById('rw').style.display='none';
-  clearMkrs();
+  curCond=null;clearMkrs();
+  const condList=document.getElementById('condList');
+  condList.innerHTML=`<div class="ld"><div class="spin"></div><span>분석 중…</span></div>`;
+  document.getElementById('matchTag').textContent='분석 중…';
+
+  const symParam=[...selSyms].join(',');
+  try{
+    const r=await fetch(`${API}/api/match_conditions?symptoms=${encodeURIComponent(symParam)}&stage=${riskLv}`);    const data=await r.json();
+    if(data.error)throw new Error(data.error);
+    matchCache=data;
+    renderConditions(data);
+  }catch(e){
+    condList.innerHTML=`<div class="empty">${e.message}</div>`;
+    document.getElementById('matchTag').textContent='오류';
+  }
 }
+
+const MATCH_LABEL={
+  single:'선택한 증상 기반 의심 질환',
+  intersection:'선택한 증상들의 공통 의심 질환',
+  partial_overlap:'증상 간 일부 공통 의심 질환',
+  union:'각 증상별 의심 질환 (공통 항목 없음)'
+};
+
+function renderConditions(data){
+  document.getElementById('matchTag').textContent=
+    `${MATCH_LABEL[data.match_type]||''} · ${selSyms.size}개 증상`;
+  const list=document.getElementById('condList');
+  list.innerHTML='';
+  
+  if(!data.conditions.length){
+    list.innerHTML='<div class="empty">매칭되는 진료과가 없습니다.</div>';return;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // [UX 개선] 질환 중심이 아닌 '진료과' 중심으로 데이터를 다시 묶어줍니다.
+  // ──────────────────────────────────────────────────────────────────
+  const deptMap = {};
+  data.conditions.forEach(c => {
+    c.department_codes.forEach((code, idx) => {
+      if(!deptMap[code]) {
+        deptMap[code] = {
+          code: code,
+          name: c.department_names[idx],
+          conditions: [],
+          high_risk: false
+        };
+      }
+      // 해당 진료과에 의심 질환 이름들을 모아줍니다.
+      deptMap[code].conditions.push(c.name);
+      // 하나라도 고위험 질환이 껴있으면 해당 진료과 방문을 고위험으로 표시합니다.
+      if(c.high_risk) deptMap[code].high_risk = true;
+    });
+  });
+  Object.values(deptMap).forEach(dept => {
+    const b=document.createElement('button');b.className='cond';
+    b.innerHTML=`
+      <div class="cond-name" style="font-size:14.5px; color:var(--teal2);">
+        🏥 ${dept.name} 진료 권장
+        ${dept.high_risk ? '<span class="cond-hr">고위험 의심 포함</span>' : ''}
+      </div>
+      <div class="cond-dept" style="margin-top:6px; font-size:12px; color:var(--t2); line-height:1.4;">
+        <b>관련 의심 질환:</b> ${dept.conditions.join(', ')}
+      </div>`;
+    b.onclick=()=>selectDepartment(dept, data);
+    list.appendChild(b);
+  });
+}
+
+// 2. 기존 selectCondition 함수를 selectDepartment 로 교체
+function selectDepartment(dept, matchData){
+  // 병원 검색 함수(fetchH)가 기존 변수들을 그대로 쓸 수 있게 형태를 맞춰줍니다.
+  curCond = { department_names: [dept.name], high_risk: dept.high_risk }; 
+  curDeptCodes = [dept.code];
+
+  // 클릭한 진료과 카드에 시각적 하이라이트(on) 적용
+  document.querySelectorAll('.cond').forEach(b=>b.classList.remove('on'));
+  [...document.getElementById('condList').children].forEach(b=>{
+    if(b.querySelector('.cond-name').textContent.includes(dept.name)) b.classList.add('on');
+  });
+
+  renderBanner();
+  showRes();
+  fetchH();
+}
+
+function selectCondition(c,matchData){
+  curCond=c;curDeptCodes=c.department_codes;
+  document.querySelectorAll('.cond').forEach(b=>b.classList.remove('on'));
+  [...document.getElementById('condList').children].forEach(b=>{
+    if(b.querySelector('.cond-name').textContent.startsWith(c.name))b.classList.add('on');
+  });
+
+  renderBanner();
+  showRes();
+  fetchH();
+}
+
+function renderBanner(){
+  const el=document.getElementById('banner');
+  
+  const isStrictMode = (matchCache && matchCache.symptom_high_risk) || (curCond && curCond.high_risk) || riskLv === 5;
+  const isRecommendMode = ((matchCache && matchCache.multi_symptom) || riskLv === 4) && !isStrictMode;
+
+  if(!isStrictMode && !isRecommendMode){el.innerHTML='';return;}
+
+  if(isStrictMode) {
+      el.innerHTML=`<div class="banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <div>
+          <div class="banner-t">응급·고위험 상황 감지</div>
+          <div class="banner-d">위험도가 높거나 고위험 증상이 포함되어 의원을 제외한 <b>병원급 이상 시설</b>만 즉시 표시합니다. 응급 시 119를 이용하세요.</div>
+        </div>
+      </div>`;
+  } else if (isRecommendMode) {
+      el.innerHTML=`<div class="banner" style="background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.35);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <div>
+          <div class="banner-t" style="color:#fbbf24">상위 병원 진료 추천</div>
+          <div class="banner-d" style="color:rgba(251,191,36,.85)">여러 증상이 있거나 통증이 심한 편입니다. 동네 의원도 표시되지만, 가급적 <b>★ 추천</b> 마크가 있는 병원·종합병원 진료를 권장합니다.</div>
+        </div>
+      </div>`;
+  }
+}
+
+/* ══════ Results / Hospitals ══════ */
 function showRes(){
   document.getElementById('rdiv').style.display='block';
   document.getElementById('rw').style.display='block';
 }
 
 async function fetchH(){
-  showRes();
   document.getElementById('hcs').innerHTML=`<div class="ld"><div class="spin"></div><span>병원 검색 중…</span></div>`;
   try{
-    const dr=await fetch(`${API}/api/department_code?primary=${encodeURIComponent(curP)}&secondary=${encodeURIComponent(curS)}`);
-    const dd=await dr.json();
-    if(dd.error)throw new Error(dd.error);
-    curD=dd.department_code;
-    const hr=await fetch(`${API}/api/hospitals?department_code=${curD}&lat=${uLat}&lng=${uLng}&radius=${rad}`);
+    const isHighRiskSymptom = (matchCache && matchCache.symptom_high_risk) || (curCond && curCond.high_risk) ? 'true' : 'false';
+    const isMultiSymptom = (matchCache && matchCache.multi_symptom) ? 'true' : 'false';
+    
+    const url=`${API}/api/hospitals?department_codes=${curDeptCodes.join(',')}&lat=${uLat}&lng=${uLng}&radius=${rad}&stage=${riskLv}&multi_symptom=${isMultiSymptom}&high_risk_symptom=${isHighRiskSymptom}`;
+    
+    const hr=await fetch(url);
     const hs=await hr.json();
     renderH(hs);
   }catch(e){
@@ -602,20 +676,25 @@ async function fetchH(){
 
 function renderH(list){
   clearMkrs();
-  const dn=DEPT[curD]||`코드 ${curD}`;
   document.getElementById('rcnt').textContent=list.length;
-  document.getElementById('rdept').textContent=`${dn}`;
+  document.getElementById('rdept').textContent=curCond.department_names.join(', ');
   const cs=document.getElementById('hcs');
   if(!list.length){
-    cs.innerHTML=`<div class="empty">반경 ${rad}km 내 해당 병원이 없습니다.<br>반경을 늘려보세요.</div>`;return;
+    cs.innerHTML=`<div class="empty">반경 ${rad}km 내 ${curHighAcuity?'병원/종합병원':'해당'} 병원이 없습니다.<br>반경을 늘려보세요.</div>`;return;
   }
   cs.innerHTML='';
   const td=new Date().getDay(),tk=DAYS[td];
   list.forEach((h,i)=>{
     const c=document.createElement('div');c.className='hc';
     const hrs=h[tk]||'';
+    const isHigh=HIGH_TIER[h.facility_code];
+    const facLabel=FAC_LABEL[h.facility_code]||h.facility_name||'';
     c.innerHTML=`<div class="ht"><span class="hn">${h.name}</span><span class="hd">${h.distance_km}km</span></div>
-      <span class="hdept">${dn}</span>
+      <div class="hbadges">
+        ${h.is_recommended ? `<span class="hfac" style="color:#08192e;background:var(--teal2);font-weight:700">★ 추천</span>` : ''}
+        <span class="hdept">${h.department_name||''}</span>
+        <span class="hfac ${isHigh?'tier-high':'tier-low'}">${facLabel}</span>
+      </div>
       <div class="hi">
         ${h.phone?`<div>📞 ${h.phone}</div>`:''}
         ${hrs?`<div class="hop">⏰ ${DKR[td]}요일 ${hrs}</div>`:`<div>오늘 운영시간 정보 없음</div>`}
@@ -623,10 +702,17 @@ function renderH(list){
     c.onclick=()=>focH(h,i,c);
     cs.appendChild(c);
     const m=L.marker([h.latitude,h.longitude],{icon:L.divIcon({
-      html:`<div style="background:#08192e;color:#fff;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px;border:2px solid #0ea5c5;box-shadow:0 2px 8px rgba(0,0,0,.3);position:relative">${i+1}<span style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #0ea5c5"></span></div>`,
-      className:'',iconAnchor:[14,30]
+      html:`<div style="position:relative; width:28px; height:34px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
+              <div style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; background-color:${isHigh?'#ef4444':'#0ea5c5'}; color:#ffffff; font-family:'Noto Sans KR',sans-serif; font-size:12px; font-weight:700; border-radius:50%; border:2px solid #ffffff; box-shadow:0 3px 8px rgba(0,0,0,0.35); flex-shrink:0;">
+                ${i+1}
+              </div>
+              <div style="width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:6px solid ${isHigh?'#ef4444':'#0ea5c5'}; margin-top:-1px; flex-shrink:0;"></div>
+            </div>`,
+      className:'',
+      iconSize:[28,34],      // 마커 전체 크기 고정
+      iconAnchor:[14,34]     // 지도의 정확한 좌표 좌표에 마커 끝점이 찍히도록 고정
     })}).addTo(map);
-    m.bindPopup(mkPop(h,dn,tk),{maxWidth:240,className:''});
+    m.bindPopup(mkPop(h,facLabel,tk),{maxWidth:240,className:''});
     m.on('click',()=>focH(h,i,c));
     mkrs.push(m);
   });
@@ -635,11 +721,14 @@ function renderH(list){
   map.flyToBounds(b.pad(0.2),{duration:1.2,maxZoom:15});
 }
 
-function mkPop(h, dn, tk){
-  const hrs = h[tk] || '';
-  const td = new Date().getDay();
-  const kakaoUrl = `https://map.kakao.com/link/from/내위치,${uLat},${uLng}/to/${encodeURIComponent(h.name)},${h.latitude},${h.longitude}`;  return `<div class="pb">
-    <div class="pbn">${h.name}</div><div class="pbd">${dn}</div>
+function mkPop(h,facLabel,tk){
+  const hrs=h[tk]||'',  td=new Date().getDay();
+  
+  const kakaoUrl = `https://map.kakao.com/link/from/내위치,${uLat},${uLng}/to/${encodeURIComponent(h.name)},${h.latitude},${h.longitude}`;
+
+  return `<div class="pb">
+    <div class="pbn">${h.name}</div>
+    <div class="pbd">${h.department_name||''} · ${facLabel}</div>
     ${h.phone ? `<div class="pbr">📞 ${h.phone}</div>` : ''}
     <div class="pbr">📍 ${h.distance_km}km</div>
     ${hrs ? `<div class="pbo">⏰ ${DKR[td]}요일 ${hrs}</div>` : `<div class="pbc">오늘 운영시간 정보 없음</div>`}
@@ -657,19 +746,15 @@ function focH(h,i,card){
   map.flyTo([h.latitude,h.longitude],16,{duration:1});
   mkrs[i]?.openPopup();
 }
-
 function clearMkrs(){mkrs.forEach(m=>m.remove());mkrs=[];focEl=null;}
 
 let radT;
 function onRad(v){
   rad=parseInt(v);document.getElementById('rval').textContent=`${v}km`;
-  clearTimeout(radT);if(curD)radT=setTimeout(fetchH,600);
+  clearTimeout(radT);if(curCond)radT=setTimeout(fetchH,600);
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('p0').style.display='block';
-  document.getElementById('p1').style.display='none';
-  document.getElementById('p2').style.display='none';
   renderCats();
   initMap();
 });
