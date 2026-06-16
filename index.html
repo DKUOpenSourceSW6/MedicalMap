@@ -263,7 +263,6 @@ html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;back
 
   <div class="sbb">
 
-    <!-- ═══ Phase 0: 증상 선택 ═══ -->
     <div class="phase on" id="p0">
       <div class="tray" id="tray">
         <span class="tray-empty">증상을 선택하면 여기에 표시됩니다 (여러 개 선택 가능)</span>
@@ -274,7 +273,6 @@ html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;back
       </div>
     </div>
 
-    <!-- ═══ Phase 1: 위험도 ═══ -->
     <div class="phase" id="p1">
       <button class="backbtn" onclick="goPhase(0)">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
@@ -287,7 +285,6 @@ html,body{height:100%;font-family:'Noto Sans KR',sans-serif;overflow:hidden;back
       </div>
     </div>
 
-    <!-- ═══ Phase 2: 질환 + 병원 결과 ═══ -->
     <div class="phase" id="p2">
       <button class="backbtn" onclick="goPhase(1)">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
@@ -384,7 +381,7 @@ const RISK_LEVELS=[
   {lv:2,t:'2단계 · 경미한 증상',d:'신경은 쓰이지만 평소 활동은 그대로 할 수 있어요.',color:'#84cc16'},
   {lv:3,t:'3단계 · 중등도 증상',d:'일상생활에 다소 지장이 있고, 며칠째 지속돼요.',color:'#f59e0b'},
   {lv:4,t:'4단계 · 심한 증상',d:'통증이 심해 일상생활이 어렵고 빠른 진료가 필요해요.',color:'#f97316'},
-  {lv:5,t:'5단계 · 응급 상황',d:'참기 힘든 통증이거나 일상생활이 불가능한 수준이에요.',color:'#ef4444'},
+  {lv:5,t:'5단계 · 응급 상황',d:'참기 힘든 통증이거나 일상생활이 불가능한 수준이에요.',color:'#ef4444'}
 ];
 
 /* ── State ── */
@@ -746,6 +743,7 @@ function focH(h,i,card){
   map.flyTo([h.latitude,h.longitude],16,{duration:1});
   mkrs[i]?.openPopup();
 }
+
 function clearMkrs(){mkrs.forEach(m=>m.remove());mkrs=[];focEl=null;}
 
 let radT;
