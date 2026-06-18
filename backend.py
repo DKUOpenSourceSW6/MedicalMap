@@ -450,7 +450,7 @@ def match_conditions():
     return jsonify({
         'conditions': conditions,
         'match_type': match_type,
-        'multi_symptom': len(symptoms) > 1,
+        'multi_symptom': len(symptoms) > 2,
         'symptom_high_risk': symptom_high_risk,
     })
 
